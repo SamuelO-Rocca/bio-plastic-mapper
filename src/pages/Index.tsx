@@ -19,6 +19,15 @@ type FungusData = {
   maturation: string;
 };
 
+type DegradationMeasure = {
+  id: string;
+  date: string;
+  plasticAmount: number;
+  fungusAmount: number;
+  fungusType: string;
+  degradationRate: number;
+};
+
 export default function Index() {
   const [route, setRoute] = useState('home');
   const [dark, setDark] = useState(true);
@@ -42,6 +51,15 @@ export default function Index() {
 
   const [plasticPreview, setPlasticPreview] = useState<string | null>(null);
   const [fungusPreview, setFungusPreview] = useState<string | null>(null);
+  
+  // Dashboard degradation data
+  const [degradationMeasures, setDegradationMeasures] = useState<DegradationMeasure[]>([]);
+  const [newMeasure, setNewMeasure] = useState({
+    plasticAmount: '',
+    fungusAmount: '',
+    fungusType: '',
+    degradationRate: ''
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -398,27 +416,222 @@ export default function Index() {
     );
   }
 
-  function DashboardPlaceholder() {
+  function Dashboard() {
+    const addMeasure = (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      const measure: DegradationMeasure = {
+        id: Date.now().toString(),
+        date: new Date().toLocaleDateString('pt-BR'),
+        plasticAmount: parseFloat(newMeasure.plasticAmount),
+        fungusAmount: parseFloat(newMeasure.fungusAmount),
+        fungusType: newMeasure.fungusType,
+        degradationRate: parseFloat(newMeasure.degradationRate)
+      };
+      
+      setDegradationMeasures([...degradationMeasures, measure]);
+      setNewMeasure({ plasticAmount: '', fungusAmount: '', fungusType: '', degradationRate: '' });
+    };
+
+    const removeMeasure = (id: string) => {
+      setDegradationMeasures(degradationMeasures.filter(m => m.id !== id));
+    };
+
     return (
       <section className="pt-28 pb-20 px-4 min-h-screen">
-        <div className="max-w-6xl mx-auto bg-card border border-border rounded-2xl p-8">
-          <h2 className="text-2xl font-semibold text-foreground mb-4">Dashboard Analítico</h2>
-          <p className="text-muted-foreground mb-6">
-            Métricas e visualizações de dados sobre fungos e coleta de plásticos.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center border border-border">
-              <div className="text-center">
-                <div className="text-4xl mb-2">📊</div>
-                <div className="text-sm font-medium">Gráfico Fungos</div>
-              </div>
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="bg-card border border-border rounded-2xl p-8">
+            <h2 className="text-2xl font-semibold text-foreground mb-2">Dashboard Analítico</h2>
+            <p className="text-muted-foreground mb-8">
+              Análise de degradação de plástico através da ação de fungos
+            </p>
+
+            {/* Formulário de inserção */}
+            <div className="bg-muted/50 border border-border rounded-xl p-6 mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Adicionar Nova Medição</h3>
+              <form onSubmit={addMeasure} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Plástico (kg)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={newMeasure.plasticAmount}
+                    onChange={(e) => setNewMeasure({ ...newMeasure, plasticAmount: e.target.value })}
+                    className="w-full p-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Fungo (g)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={newMeasure.fungusAmount}
+                    onChange={(e) => setNewMeasure({ ...newMeasure, fungusAmount: e.target.value })}
+                    className="w-full p-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Tipo de Fungo
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newMeasure.fungusType}
+                    onChange={(e) => setNewMeasure({ ...newMeasure, fungusType: e.target.value })}
+                    className="w-full p-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    placeholder="Ex: Aspergillus"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Taxa Degradação (%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="100"
+                    required
+                    value={newMeasure.degradationRate}
+                    onChange={(e) => setNewMeasure({ ...newMeasure, degradationRate: e.target.value })}
+                    className="w-full p-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                    placeholder="0.0"
+                  />
+                </div>
+                
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity text-sm"
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </form>
             </div>
-            <div className="aspect-video bg-gradient-to-br from-accent/20 to-accent/5 rounded-lg flex items-center justify-center border border-border">
-              <div className="text-center">
-                <div className="text-4xl mb-2">📈</div>
-                <div className="text-sm font-medium">Gráfico Plásticos</div>
+
+            {/* Gráfico de degradação */}
+            {degradationMeasures.length > 0 ? (
+              <div className="space-y-6">
+                <div className="bg-background border border-border rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Gráfico de Capacidade de Degradação</h3>
+                  
+                  {/* Chart visual representation */}
+                  <div className="h-64 flex items-end gap-2 border-b border-l border-border pb-2 pl-2 mb-4">
+                    {degradationMeasures.map((measure, idx) => (
+                      <div key={measure.id} className="flex-1 flex flex-col items-center gap-2">
+                        <div className="text-xs text-muted-foreground font-medium">
+                          {measure.degradationRate}%
+                        </div>
+                        <div 
+                          className="w-full bg-gradient-to-t from-primary to-accent rounded-t-md transition-all hover:opacity-80 cursor-pointer"
+                          style={{ height: `${(measure.degradationRate / 100) * 100}%` }}
+                          title={`${measure.fungusType}: ${measure.degradationRate}%`}
+                        />
+                        <div className="text-xs text-muted-foreground text-center">
+                          <div className="font-medium truncate max-w-[80px]">{measure.fungusType}</div>
+                          <div>{measure.date}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center gap-6 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-gradient-to-t from-primary to-accent rounded" />
+                      <span className="text-muted-foreground">Taxa de Degradação</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabela de medições */}
+                <div className="bg-background border border-border rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-muted">
+                        <tr>
+                          <th className="text-left p-4 text-sm font-semibold text-foreground">Data</th>
+                          <th className="text-left p-4 text-sm font-semibold text-foreground">Tipo de Fungo</th>
+                          <th className="text-right p-4 text-sm font-semibold text-foreground">Plástico (kg)</th>
+                          <th className="text-right p-4 text-sm font-semibold text-foreground">Fungo (g)</th>
+                          <th className="text-right p-4 text-sm font-semibold text-foreground">Degradação (%)</th>
+                          <th className="text-right p-4 text-sm font-semibold text-foreground">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {degradationMeasures.map((measure) => (
+                          <tr key={measure.id} className="border-t border-border hover:bg-muted/30 transition-colors">
+                            <td className="p-4 text-sm text-foreground">{measure.date}</td>
+                            <td className="p-4 text-sm text-foreground font-medium">{measure.fungusType}</td>
+                            <td className="p-4 text-sm text-foreground text-right">{measure.plasticAmount.toFixed(2)}</td>
+                            <td className="p-4 text-sm text-foreground text-right">{measure.fungusAmount.toFixed(2)}</td>
+                            <td className="p-4 text-sm text-right">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                                {measure.degradationRate.toFixed(1)}%
+                              </span>
+                            </td>
+                            <td className="p-4 text-right">
+                              <button
+                                onClick={() => removeMeasure(measure.id)}
+                                className="text-sm text-destructive hover:text-destructive/80 transition-colors font-medium"
+                              >
+                                Remover
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Estatísticas */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-background border border-border rounded-lg p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Total de Medições</div>
+                    <div className="text-2xl font-bold text-foreground">{degradationMeasures.length}</div>
+                  </div>
+                  <div className="bg-background border border-border rounded-lg p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Plástico Total (kg)</div>
+                    <div className="text-2xl font-bold text-foreground">
+                      {degradationMeasures.reduce((sum, m) => sum + m.plasticAmount, 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="bg-background border border-border rounded-lg p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Fungo Total (g)</div>
+                    <div className="text-2xl font-bold text-foreground">
+                      {degradationMeasures.reduce((sum, m) => sum + m.fungusAmount, 0).toFixed(2)}
+                    </div>
+                  </div>
+                  <div className="bg-background border border-border rounded-lg p-4">
+                    <div className="text-sm text-muted-foreground mb-1">Degradação Média (%)</div>
+                    <div className="text-2xl font-bold text-primary">
+                      {(degradationMeasures.reduce((sum, m) => sum + m.degradationRate, 0) / degradationMeasures.length).toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="bg-muted/30 border-2 border-dashed border-border rounded-xl p-12 text-center">
+                <div className="text-5xl mb-4">📊</div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Nenhuma medição registrada</h3>
+                <p className="text-sm text-muted-foreground">
+                  Adicione medições de plástico e fungos para visualizar o gráfico de capacidade de degradação
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -433,7 +646,7 @@ export default function Index() {
         {route === 'home' && <Home />}
         {route === 'about' && <About />}
         {route === 'map' && <MapPlaceholder />}
-        {route === 'dashboard' && <DashboardPlaceholder />}
+        {route === 'dashboard' && <Dashboard />}
         {route === 'plastico' && <PlasticoForm />}
         {route === 'fungos' && <FungosForm />}
       </main>
